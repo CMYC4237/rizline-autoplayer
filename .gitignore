@@ -2,3 +2,5 @@ node_modules/
 testcharts/
 .workbuddy/
 .DS_Store
+resources/audio/
+resources/hit_fx/

@@ -1,0 +1,8 @@
+{
+  "name": "rizline-autoplay",
+  "version": "1.0.0",
+  "description": "Rizline Autoplay 视觉渲染系统",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

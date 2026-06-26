@@ -7,7 +7,7 @@ const ST = {
   ready: false,
   playing: false,
   tick: 0, lastMs: 0, rate: 1,
-  judgeOff: 0, sScale: 0.04, flowSpeed: 1,
+  judgeOff: 0, sScale: 0.047, flowSpeed: 1,
   sfxVol: 0.6, bgmVol: 0.6, lineW: 4, wheelStep: 0.25,
   mask: true,
   maxTick: 1,

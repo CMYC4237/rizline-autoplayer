@@ -123,7 +123,9 @@ const Render = {
   _holdLocked(ctx,n,line,tick,nc){
     // 头部 X 用 lineX 计算（随 ring 同动），Y 锁定在判定高度
     const jy=720+ST.judgeOff;
-    const headX=Chart.lineX(line,n.floorPosition,tick,n.time);
+    // headX 优先用 ringX（与环一致），线移出判定高度时回退 lineX
+    let headX=this._ringX(line,tick,jy);
+    if(isNaN(headX))headX=Chart.lineX(line,n.floorPosition,tick,n.time);
     if(isNaN(headX))return;
     const headY=jy;
     const tailFp=n.otherInformations[2],tailC=n.otherInformations[1];
@@ -195,14 +197,12 @@ const Render = {
     for(let i=0;i<=24;i++){const t=i/24,e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;gr.addColorStop(t,U.rgba(r,g,b,255*e))}
     ctx.fillStyle=gr;ctx.fillRect(0,jy,540,74);
     ctx.fillStyle=s;ctx.fillRect(0,jy+74,540,960-(jy+74));
-    ctx.fillStyle=s;ctx.fillRect(0,0,5,960);
-    gr=ctx.createLinearGradient(5,0,35,0);
+    gr=ctx.createLinearGradient(0,0,35,0);
     for(let i=0;i<=16;i++){const t=i/16,e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;gr.addColorStop(t,U.rgba(r,g,b,255*(1-e)))}
-    ctx.fillStyle=gr;ctx.fillRect(5,0,30,960);
-    gr=ctx.createLinearGradient(505,0,535,0);
+    ctx.fillStyle=gr;ctx.fillRect(0,0,35,960);
+    gr=ctx.createLinearGradient(505,0,540,0);
     for(let i=0;i<=16;i++){const t=i/16,e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;gr.addColorStop(t,U.rgba(r,g,b,255*e))}
-    ctx.fillStyle=gr;ctx.fillRect(505,0,30,960);
-    ctx.fillStyle=s;ctx.fillRect(535,0,5,960);
+    ctx.fillStyle=gr;ctx.fillRect(505,0,35,960);
   },
 
   _trigger(ctx,n,line,tick,uc,noteType,judgeTime){

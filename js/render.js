@@ -121,11 +121,10 @@ const Render = {
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,U.S(500)/2,0,Math.PI*2);ctx.fill();
   },
   _holdLocked(ctx,n,line,tick,nc){
-    // 头部已锁定在环处，body 延伸到尾部（尾部随 canvas 下落）
-    const jy=720+ST.judgeOff;
-    const headX=this._ringX(line,tick,jy);
+    // 头部锁定在 note 的 fp 在 canvas 上的屏幕位置，随 ring 同动（不硬锁在 jy）
+    const headY=Chart.elemY(n.floorPosition,line.linePoints[0].canvasIndex,tick);
+    const headX=Chart.lineX(line,n.floorPosition,tick,n.time);
     if(isNaN(headX))return;
-    const headY=jy;
     const tailFp=n.otherInformations[2],tailC=n.otherInformations[1];
     const tailY=Chart.elemY(tailFp,tailC,tick);
     const hh=headY-tailY;

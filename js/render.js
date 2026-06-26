@@ -173,18 +173,22 @@ const Render = {
   },
   _ringX(line,tick,jy){
     const pts=line.linePoints;if(pts.length<2)return NaN;
-    // 找判定线 Y 落在哪两个相邻线点屏幕 Y 之间
-    for(let i=0;i<pts.length-1;i++){
-      const a=Chart.pointScreen(pts[i],tick), b=Chart.pointScreen(pts[i+1],tick);
-      const lo=Math.min(a.y,b.y), hi=Math.max(a.y,b.y);
-      if(jy>=lo&&jy<=hi){
-        const t=(jy-a.y)/(b.y-a.y||1);
-        const e=(E[pts[i].easeType]||E[0])(t);
-        return U.lerp(a.x,b.x,e);
-      }
+    let i=pts._ri||0;if(i>=pts.length-1)i=0;
+    // 从游标位置向前搜索
+    for(;i<pts.length-1;i++){
+      const a=Chart.pointScreen(pts[i],tick),b=Chart.pointScreen(pts[i+1],tick);
+      const lo=Math.min(a.y,b.y),hi=Math.max(a.y,b.y);
+      if(jy>=lo&&jy<=hi){pts._ri=i;const t=(jy-a.y)/(b.y-a.y||1),e=(E[pts[i].easeType]||E[0])(t);return U.lerp(a.x,b.x,e)}
+      if(jy>hi)continue; // jy 在段下方，继续向前
+      break; // jy < lo，需向后搜索
     }
-    // 线不经过判定高度
-    return NaN;
+    // 向后搜索
+    for(i--;i>=0;i--){
+      const a=Chart.pointScreen(pts[i],tick),b=Chart.pointScreen(pts[i+1],tick);
+      const lo=Math.min(a.y,b.y),hi=Math.max(a.y,b.y);
+      if(jy>=lo&&jy<=hi){pts._ri=i;const t=(jy-a.y)/(b.y-a.y||1),e=(E[pts[i].easeType]||E[0])(t);return U.lerp(a.x,b.x,e)}
+    }
+    pts._ri=0;return NaN;
   },
 
   _mask(ctx,bg){

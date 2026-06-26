@@ -22,6 +22,7 @@ const Chart = {
       if(cm.xPositionKeyPoints)cm.xPositionKeyPoints._i=0;
     }
     for(const ln of ST.chart.lines){
+      if(ln.linePoints)ln.linePoints._ri=0;
       if(ln.lineColor)ln.lineColor._i=0;
       if(ln.judgeRingColor)ln.judgeRingColor._i=0;
     }

@@ -25,11 +25,10 @@ const Chart = {
       if(ln.lineColor)ln.lineColor._i=0;
       if(ln.judgeRingColor)ln.judgeRingColor._i=0;
     }
-    // 按 canvas index 降序排列导引线：高 canvas（背景）先渲染，低 canvas（游戏线）后渲染在上层
+    // 按首线点 time 升序排列：早出现的线先渲染（底层），晚出现的后渲染（上层）
     ST.chart._linesByCanvas=[...ST.chart.lines].sort((a,b)=>{
-      const za=Math.max(...a.linePoints.map(p=>p.canvasIndex));
-      const zb=Math.max(...b.linePoints.map(p=>p.canvasIndex));
-      return zb-za;
+      const ta=a.linePoints[0].time,tb=b.linePoints[0].time;
+      return ta-tb;
     });
   },
   _computeMaxTick(){

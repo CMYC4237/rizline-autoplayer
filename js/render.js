@@ -52,13 +52,12 @@ const Render = {
     for(let i=1;i<sp.length;i++)if(Math.abs(sp[i].x-sx)>3||Math.abs(sp[i].y-sy)>3){allSame=false;break}
     if(allSame){this._dot(ctx,sx,sy,line,pts[0],tick);return}
     const gr=ctx.createLinearGradient(sp[0].x,sp[0].y,sp[sp.length-1].x,sp[sp.length-1].y);
-    // 所有线点作为色标，按 floorPosition 比例分布（处理首尾透明但中间有色的线）
-    const minFp=pts[0].floorPosition, maxFp=pts[pts.length-1].floorPosition, fpRange=Math.abs(maxFp-minFp);
-    for(let i=0;i<sp.length;i++){
+    // 色标按屏幕空间投影分布（fp 坐标系 ≠ 屏幕坐标系，不能混用）
+    const sl=sp.length,gdx=sp[sl-1].x-sp[0].x,gdy=sp[sl-1].y-sp[0].y,g2=gdx*gdx+gdy*gdy;
+    for(let i=0;i<sl;i++){
       const col=Chart.pointColor(sp[i].p,lc,lcA,tick);
-      // 水平线（所有 FP 相同）→ 按索引均匀分布色标；否则按 FP 比例
-      const pos=fpRange<1e-6 ? i/Math.max(1,sp.length-1) : (pts[i].floorPosition-minFp)/fpRange;
-      gr.addColorStop(Math.min(1,Math.max(0,pos)),U.rgba(col.r,col.g,col.b,col.a));
+      const pos=g2<1e-6 ? i/Math.max(1,sl-1) : U.clamp(((sp[i].x-sp[0].x)*gdx+(sp[i].y-sp[0].y)*gdy)/g2,0,1);
+      gr.addColorStop(pos,U.rgba(col.r,col.g,col.b,col.a));
     }
     ctx.strokeStyle=gr;ctx.lineWidth=ST.lineW;ctx.lineCap='round';ctx.lineJoin='round';
     ctx.beginPath();ctx.moveTo(sp[0].x,sp[0].y);

@@ -80,8 +80,8 @@ const Render = {
       }
       if(tick>=n.time){
         const hs=ST.holdStates[n._gi]||{};
-        if(!hs.headHit){this._trigger(ctx,n,line,tick,uc,'hit',n.time);hs.headHit=true;ST.holdStates[n._gi]=hs}
-        this._holdLocked(ctx,n,line,tick,nc);continue;
+        if(!hs.headHit){hs.headX=Chart.lineX(line,n.floorPosition,tick,n.time);this._trigger(ctx,n,line,tick,uc,'hit',n.time);hs.headHit=true;ST.holdStates[n._gi]=hs}
+        this._holdLocked(ctx,n,line,tick,nc,hs);continue;
       }
       const x=Chart.lineX(line,n.floorPosition,tick,n.time),y=Chart.lineY(line,n.floorPosition,tick,n.time);
       if(y>-200&&y<1160)this._hold(ctx,x,y,n,line,tick,nc);
@@ -120,10 +120,10 @@ const Render = {
     ctx.fillStyle='#000';ctx.beginPath();ctx.arc(x,y,U.S(700)/2,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,U.S(500)/2,0,Math.PI*2);ctx.fill();
   },
-  _holdLocked(ctx,n,line,tick,nc){
-    // 头部已锁定在环处，body 延伸到尾部（尾部随 canvas 下落）
+  _holdLocked(ctx,n,line,tick,nc,hs){
+    // 头部锁定在环处。优先用判定时缓存的 X（线移走后 ringX 会失效），否则回调 ringX
     const jy=720+ST.judgeOff;
-    const headX=this._ringX(line,tick,jy);
+    const headX=hs&&hs.headX!=null?hs.headX:this._ringX(line,tick,jy);
     if(isNaN(headX))return;
     const headY=jy;
     const tailFp=n.otherInformations[2],tailC=n.otherInformations[1];

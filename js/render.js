@@ -191,10 +191,10 @@ const Render = {
     let gr=ctx.createLinearGradient(0,TO,0,TO+60);
     for(let i=0;i<=24;i++){const t=i/24,e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;gr.addColorStop(t,U.rgba(r,g,b,255*(1-e)))}
     ctx.fillStyle=gr;ctx.fillRect(0,TO,540,60);
-    gr=ctx.createLinearGradient(0,jy,0,jy+50);
+    gr=ctx.createLinearGradient(0,jy,0,jy+74);
     for(let i=0;i<=24;i++){const t=i/24,e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;gr.addColorStop(t,U.rgba(r,g,b,255*e))}
-    ctx.fillStyle=gr;ctx.fillRect(0,jy,540,50);
-    ctx.fillStyle=s;ctx.fillRect(0,jy+50,540,960-(jy+50));
+    ctx.fillStyle=gr;ctx.fillRect(0,jy,540,74);
+    ctx.fillStyle=s;ctx.fillRect(0,jy+74,540,960-(jy+74));
     ctx.fillStyle=s;ctx.fillRect(0,0,5,960);
     gr=ctx.createLinearGradient(5,0,35,0);
     for(let i=0;i<=16;i++){const t=i/16,e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;gr.addColorStop(t,U.rgba(r,g,b,255*(1-e)))}

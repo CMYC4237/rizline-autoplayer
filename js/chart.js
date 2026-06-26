@@ -127,7 +127,7 @@ const Chart = {
   },
   // 判定环色（游标推进）
   interpRing(jrc,tick){
-    if(tick<jrc[0].time){jrc._i=0;return {r:0,g:0,b:0,a:0}}
+    if(tick<jrc[0].time){jrc._i=0;return jrc[0].startColor}
     if(tick<=jrc[0].time){jrc._i=0;return jrc[0].startColor}
     const n=jrc.length;
     if(n===1||tick>=jrc[n-1].time){jrc._i=n-1;return jrc[n-1].startColor}

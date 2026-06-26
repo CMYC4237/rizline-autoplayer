@@ -35,7 +35,7 @@ const Render = {
   // 单线点：画一个小圆（谱师常用作灰尘/装饰）
   _dot(ctx,x,y,line,p,tick){
     const lc=line.lineColor,lcA=lc&&lc.length>0, col=Chart.pointColor(p,lc,lcA,tick);
-    ctx.fillStyle=U.rgba(col.r,col.g,col.b,col.a);ctx.beginPath();ctx.arc(x,y,ST.lineW*1.5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=U.rgba(col.r,col.g,col.b,col.a);ctx.beginPath();ctx.arc(x,y,ST.lineW/2,0,Math.PI*2);ctx.fill();
   },
 
   _line(ctx,line,tick){

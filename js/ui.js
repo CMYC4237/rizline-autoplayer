@@ -23,7 +23,7 @@ const UI = {
     // 进度条
     this._('seek').oninput=e=>{
       if(!ST.ready)return;
-      ST.tick=parseFloat(e.target.value)/1000*ST.maxTick;ST.judged.clear();ST.particles=[];ST.holdStates={};
+      ST.tick=parseFloat(e.target.value)/1000*ST.maxTick;ST._seek=true;ST.judged.clear();ST.particles=[];ST.holdStates={};
       AudioMgr.bgmSeek(U.tickToSec(ST.tick));
     };
     // 参数
@@ -42,15 +42,15 @@ const UI = {
       if(e.code==='Space'){e.preventDefault();if(!ST.ready)return;
         ST.playing=!ST.playing;if(ST.playing){ST.lastMs=performance.now();AudioMgr.bgmPlay();if(ST.audioCtx&&ST.audioCtx.state==='suspended')ST.audioCtx.resume()}else{AudioMgr.bgmPause()}
       }
-      if(e.code==='ArrowLeft'&&ST.ready){ST.tick=Math.max(0,ST.tick-5);ST.judged.clear();ST.particles=[];ST.holdStates={};AudioMgr.bgmSeek(U.tickToSec(ST.tick))}
-      if(e.code==='ArrowRight'&&ST.ready){ST.tick+=5;ST.judged.clear();ST.particles=[];ST.holdStates={};AudioMgr.bgmSeek(U.tickToSec(ST.tick))}
+      if(e.code==='ArrowLeft'&&ST.ready){ST.tick=Math.max(0,ST.tick-5);ST._seek=true;ST.judged.clear();ST.particles=[];ST.holdStates={};AudioMgr.bgmSeek(U.tickToSec(ST.tick))}
+      if(e.code==='ArrowRight'&&ST.ready){ST.tick+=5;ST._seek=true;ST.judged.clear();ST.particles=[];ST.holdStates={};AudioMgr.bgmSeek(U.tickToSec(ST.tick))}
     });
     // 响应式缩放
     this._resize();window.addEventListener('resize',()=>this._resize());
     // 滚轮：canvas 上=微调进度，步长由 ST.wheelStep 控制
     this._('cv').addEventListener('wheel',e=>{
       if(!ST.ready)return;e.preventDefault();
-      ST.tick=U.clamp(ST.tick+(e.deltaY>0?1:-1)*ST.wheelStep,0,ST.maxTick);
+      ST.tick=U.clamp(ST.tick+(e.deltaY>0?1:-1)*ST.wheelStep,0,ST.maxTick);ST._seek=true;
       ST.judged.clear();ST.particles=[];ST.holdStates={};AudioMgr.bgmSeek(U.tickToSec(ST.tick));
     });
   },

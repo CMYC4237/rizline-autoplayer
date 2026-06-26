@@ -28,9 +28,8 @@ const Render = {
     this._particles(ctx,uc);
     ctx.restore();
 
-    // ④ 遮罩
     if(ST.mask) this._mask(ctx,bg);
-    ST._prevTick=tick;
+    ST._seek=false;
   },
 
   // 单线点：画一个小圆（谱师常用作灰尘/装饰）
@@ -207,10 +206,8 @@ const Render = {
   },
 
   _trigger(ctx,n,line,tick,uc,noteType,judgeTime){
-    // 跳帧（seek）时不生成视觉特效，仅播 SFX
-    if(ST._prevTick!=null&&Math.abs(tick-ST._prevTick)>2){
-      if(noteType)AudioMgr.sfxPlay(noteType);return;
-    }
+    // seek 时不生成视觉特效（所有 note 一次性积累判定应无粒子）
+    if(ST._seek){if(noteType)AudioMgr.sfxPlay(noteType);return}
     const x=Chart.lineX(line,n.floorPosition,tick,judgeTime),y=720+ST.judgeOff;
     const s=[];
     for(let i=0;i<4;i++){const a=Math.random()*Math.PI*2;s.push({x,y,vx:Math.cos(a)*650*(.8+Math.random()*.4),vy:Math.sin(a)*650*(.8+Math.random()*.4),r:16*(.85+Math.random()*.3)})}

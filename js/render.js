@@ -181,10 +181,10 @@ const Render = {
     if(tick<pts[i].time||tick>pts[i+1].time)return NaN;
     const t=(tick-pts[i].time)/(pts[i+1].time-pts[i].time||1);
     const e=(E[pts[i].easeType]||E[0])(t);
-    const xPos=U.lerp(pts[i].xPosition,pts[i+1].xPosition,e);
-    // 转屏幕 X（沿用该段的 canvas xOff）
-    const xOff=Chart.interpKP(ST.chart.canvasMoves[pts[i].canvasIndex].xPositionKeyPoints,tick);
-    return (xPos+xOff+0.5)*540;
+    // 两端的 xPosition + xOff（跨画布段也要正确插值）
+    const xOff=U.lerp(Chart.interpKP(ST.chart.canvasMoves[pts[i].canvasIndex].xPositionKeyPoints,tick),
+                     Chart.interpKP(ST.chart.canvasMoves[pts[i+1].canvasIndex].xPositionKeyPoints,tick),e);
+    return (U.lerp(pts[i].xPosition,pts[i+1].xPosition,e)+xOff+0.5)*540;
   },
 
   _mask(ctx,bg){

@@ -32,8 +32,19 @@ const Render = {
     if(ST.mask) this._mask(ctx,bg);
   },
 
+  // 单线点：画一个小圆（谱师常用作灰尘/装饰）
+  _dot(ctx,x,y,line,p,tick){
+    const lc=line.lineColor,lcA=lc&&lc.length>0, col=Chart.pointColor(p,lc,lcA,tick);
+    ctx.fillStyle=U.rgba(col.r,col.g,col.b,col.a);ctx.beginPath();ctx.arc(x,y,ST.lineW*1.5,0,Math.PI*2);ctx.fill();
+  },
+
   _line(ctx,line,tick){
-    const pts=line.linePoints;if(pts.length<2)return;
+    const pts=line.linePoints;if(!pts.length)return;
+    // Y 范围裁剪：首尾线点均离屏太远则跳过（兼容负流速回拉、单线点的情况）
+    const y0=Chart.elemY(pts[0].floorPosition,pts[0].canvasIndex,tick);
+    const yN=Chart.elemY(pts[pts.length-1].floorPosition,pts[pts.length-1].canvasIndex,tick);
+    if(Math.max(y0,yN)<-300||Math.min(y0,yN)>1260)return;
+    if(pts.length<2){const p=Chart.pointScreen(pts[0],tick);this._dot(ctx,p.x,p.y,line,pts[0],tick);return}
     const lc=line.lineColor, lcA=lc&&lc.length>0;
     const sp=pts.map(p=>Chart.pointScreen(p,tick));
     const gr=ctx.createLinearGradient(sp[0].x,sp[0].y,sp[sp.length-1].x,sp[sp.length-1].y);
@@ -143,6 +154,10 @@ const Render = {
   },
 
   _ring(ctx,line,tick,jy){
+    const pts=line.linePoints;if(!pts.length)return;
+    const y0=Chart.elemY(pts[0].floorPosition,pts[0].canvasIndex,tick);
+    const yN=Chart.elemY(pts[pts.length-1].floorPosition,pts[pts.length-1].canvasIndex,tick);
+    if(Math.max(y0,yN)<-300||Math.min(y0,yN)>1260)return;
     const jrc=line.judgeRingColor;if(!jrc||!jrc.length)return;
     const col=Chart.interpRing(jrc,tick);
     if(!col||(col.r===0&&col.g===0&&col.b===0&&col.a===0))return;
@@ -193,7 +208,13 @@ const Render = {
     const x=Chart.lineX(line,n.floorPosition,tick,judgeTime),y=720+ST.judgeOff;
     const s=[];
     for(let i=0;i<4;i++){const a=Math.random()*Math.PI*2;s.push({x,y,vx:Math.cos(a)*650*(.8+Math.random()*.4),vy:Math.sin(a)*650*(.8+Math.random()*.4),r:16*(.85+Math.random()*.3)})}
-    ST.particles.push({st:performance.now(),x,y,s,t:uc});
+    // Riztime 上升粒子：3~4 个，半径≈飞溅一半，缓出上升 + 缓入缩隐
+    const rise=[];
+    if(Chart.isRiztime(tick)){
+      const n=3+Math.floor(Math.random()*2),xOff=U.S(990)/2;
+      for(let i=0;i<n;i++)rise.push({x:x+(Math.random()-.5)*xOff,y,targetY:Math.random()*480,r:5.3*(.85+Math.random()*.3)});
+    }
+    ST.particles.push({st:performance.now(),x,y,s,rise:rise.length?rise:null,t:uc});
     if(noteType)AudioMgr.sfxPlay(noteType);
   },
   _particles(ctx,uc){
@@ -210,7 +231,19 @@ const Render = {
       const dc=Math.exp(-5*t),sf=1-t*t;
       ctx.globalAlpha=Math.max(0,1-t);ctx.fillStyle=U.rgba(p.t.r,p.t.g,p.t.b,255);
       for(const q of p.s){const d=(1-dc)/5,r=q.r*sf;if(r>.5){ctx.beginPath();ctx.arc(q.x+q.vx*d,q.y+q.vy*d,r,0,Math.PI*2);ctx.fill()}}
-      ctx.globalAlpha=1;return true;
+      ctx.globalAlpha=1;
+      // Riztime 上升粒子：ExpoOut 位移上升 + ExpoIn 缩隐
+      if(p.rise){
+        const ed=1-Math.pow(2,-10*t); // ExpoOut 位移比例
+        const es=1-Math.pow(2,10*(t-1)); // ExpoIn 大小/透明度
+        ctx.fillStyle=U.rgba(p.t.r,p.t.g,p.t.b,255);
+        for(const q of p.rise){
+          const ny=q.y-(q.y-q.targetY)*ed,r=q.r*es;
+          if(r>.5){ctx.globalAlpha=Math.max(0,es);ctx.beginPath();ctx.arc(q.x,ny,r,0,Math.PI*2);ctx.fill()}
+        }
+        ctx.globalAlpha=1;
+      }
+      return true;
     });
   },
 };

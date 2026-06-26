@@ -103,6 +103,12 @@ const Chart = {
     if(blend<=0||blend>=1)return t0.colorsList;
     return t0.colorsList.map((c,i)=>U.lerpC(c,t1.colorsList[i],blend));
   },
+  // 判定是否处于 Riztime 区间（用于打击粒子增强）
+  isRiztime(tick){
+    const ct=ST.chart.challengeTimes||[];
+    for(let i=0;i<ct.length;i++)if(tick>=ct[i].start&&tick<=ct[i].end)return true;
+    return false;
+  },
   // lineColor 插值（游标推进）
   interpLC(lc,tick){
     if(!lc||!lc.length)return null;

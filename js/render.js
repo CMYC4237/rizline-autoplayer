@@ -47,6 +47,10 @@ const Render = {
     if(pts.length<2){const p=Chart.pointScreen(pts[0],tick);this._dot(ctx,p.x,p.y,line,pts[0],tick);return}
     const lc=line.lineColor, lcA=lc&&lc.length>0;
     const sp=pts.map(p=>Chart.pointScreen(p,tick));
+    // 所有线点趋于同一点（零长线→谱师用作「灰尘」装饰）→ 画点而非勾线
+    const sx=sp[0].x,sy=sp[0].y;let allSame=true;
+    for(let i=1;i<sp.length;i++)if(Math.abs(sp[i].x-sx)>3||Math.abs(sp[i].y-sy)>3){allSame=false;break}
+    if(allSame){this._dot(ctx,sx,sy,line,pts[0],tick);return}
     const gr=ctx.createLinearGradient(sp[0].x,sp[0].y,sp[sp.length-1].x,sp[sp.length-1].y);
     // 所有线点作为色标，按 floorPosition 比例分布（处理首尾透明但中间有色的线）
     const minFp=pts[0].floorPosition, maxFp=pts[pts.length-1].floorPosition, fpRange=Math.abs(maxFp-minFp);

@@ -51,6 +51,7 @@ const AudioMgr = {
     this._bgmEl.loop=false;
     this._bgmEl.preload='auto';
     this._bgmEl.playbackRate=ST.rate;
+    this._bgmEl.preservesPitch=false;
     this._bgmEl.onerror=()=>console.warn('BGM: element error');
     this._bgmEl.oncanplaythrough=()=>console.log('BGM: canplaythrough');
     document.body.appendChild(this._bgmEl);

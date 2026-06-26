@@ -51,23 +51,21 @@ const Render = {
     const sx=sp[0].x,sy=sp[0].y;let allSame=true;
     for(let i=1;i<sp.length;i++)if(Math.abs(sp[i].x-sx)>3||Math.abs(sp[i].y-sy)>3){allSame=false;break}
     if(allSame){this._dot(ctx,sx,sy,line,pts[0],tick);return}
-    const gr=ctx.createLinearGradient(sp[0].x,sp[0].y,sp[sp.length-1].x,sp[sp.length-1].y);
-    // 色标按屏幕空间投影分布（fp 坐标系 ≠ 屏幕坐标系，不能混用）
-    const sl=sp.length,gdx=sp[sl-1].x-sp[0].x,gdy=sp[sl-1].y-sp[0].y,g2=gdx*gdx+gdy*gdy;
-    for(let i=0;i<sl;i++){
-      const col=Chart.pointColor(sp[i].p,lc,lcA,tick);
-      const pos=g2<1e-6 ? i/Math.max(1,sl-1) : U.clamp(((sp[i].x-sp[0].x)*gdx+(sp[i].y-sp[0].y)*gdy)/g2,0,1);
-      gr.addColorStop(pos,U.rgba(col.r,col.g,col.b,col.a));
-    }
-    ctx.strokeStyle=gr;ctx.lineWidth=ST.lineW;ctx.lineCap='round';ctx.lineJoin='round';
-    ctx.beginPath();ctx.moveTo(sp[0].x,sp[0].y);
+    // 逐段渲染：每段单独建渐变，颜色始终沿线方向
+    ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=ST.lineW;
     for(let i=0;i<sp.length-1;i++){
       const a=sp[i],b=sp[i+1],e=E[a.p.easeType]||E[0];
+      const ca=Chart.pointColor(a.p,lc,lcA,tick),cb=Chart.pointColor(b.p,lc,lcA,tick);
+      const gr=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+      gr.addColorStop(0,U.rgba(ca.r,ca.g,ca.b,ca.a));
+      gr.addColorStop(1,U.rgba(cb.r,cb.g,cb.b,cb.a));
+      ctx.strokeStyle=gr;
+      ctx.beginPath();ctx.moveTo(a.x,a.y);
       if(a.p.easeType===13){ctx.lineTo(a.x,b.y);ctx.lineTo(b.x,b.y)}
       else if(a.p.easeType===14){ctx.lineTo(b.x,a.y);ctx.lineTo(b.x,b.y)}
       else{const s=16;for(let j=1;j<=s;j++){const t=j/s;ctx.lineTo(U.lerp(a.x,b.x,e(t)),U.lerp(a.y,b.y,t))}}
+      ctx.stroke();
     }
-    ctx.stroke();
   },
 
   _notesHolds(ctx,line,tick,nc,uc){

@@ -124,7 +124,7 @@ const Render = {
     // 头部 X 用 lineX 计算（随 ring 同动），Y 锁定在判定高度
     const jy=720+ST.judgeOff;
     // headX 优先用 ringX（与环一致），线移出判定高度时回退 lineX
-    let headX=this._ringX(line,tick,jy);
+    let headX=this._ringX(line,tick);
     if(isNaN(headX))headX=Chart.lineX(line,n.floorPosition,tick,n.time);
     if(isNaN(headX))return;
     const headY=jy;
@@ -164,27 +164,27 @@ const Render = {
     const jrc=line.judgeRingColor;if(!jrc||!jrc.length)return;
     const col=Chart.interpRing(jrc,tick);
     if(!col||(col.r===0&&col.g===0&&col.b===0&&col.a===0))return;
-    const x=this._ringX(line,tick,jy);
+    const x=this._ringX(line,tick);
     if(isNaN(x))return; // 线不经过判定高度
     const oR=U.S(1260)/2,iR=U.S(1071)/2,mR=(oR+iR)/2;
     ctx.strokeStyle=U.rgba(col.r,col.g,col.b,col.a);
     ctx.lineWidth=Math.max(.5,oR-iR);
     ctx.beginPath();ctx.arc(x,jy,mR,0,Math.PI*2);ctx.stroke();
   },
-  _ringX(line,tick,jy){
+  _ringX(line,tick){
     const pts=line.linePoints;if(pts.length<2)return NaN;
-    // 找判定线 Y 落在哪两个相邻线点屏幕 Y 之间
-    for(let i=0;i<pts.length-1;i++){
-      const a=Chart.pointScreen(pts[i],tick), b=Chart.pointScreen(pts[i+1],tick);
-      const lo=Math.min(a.y,b.y), hi=Math.max(a.y,b.y);
-      if(jy>=lo&&jy<=hi){
-        const t=(jy-a.y)/(b.y-a.y||1);
-        const e=(E[pts[i].easeType]||E[0])(t);
-        return U.lerp(a.x,b.x,e);
-      }
-    }
-    // 线不经过判定高度
-    return NaN;
+    // 按时间找段（游标推进）
+    let i=pts._ri||0;if(i>=pts.length-1)i=0;
+    while(i<pts.length-2&&tick>=pts[i+1].time)i++;
+    while(i>0&&tick<pts[i].time)i--;
+    pts._ri=i;
+    if(tick<pts[i].time||tick>pts[i+1].time)return NaN;
+    const t=(tick-pts[i].time)/(pts[i+1].time-pts[i].time||1);
+    const e=(E[pts[i].easeType]||E[0])(t);
+    const xPos=U.lerp(pts[i].xPosition,pts[i+1].xPosition,e);
+    // 转屏幕 X（沿用该段的 canvas xOff）
+    const xOff=Chart.interpKP(ST.chart.canvasMoves[pts[i].canvasIndex].xPositionKeyPoints,tick);
+    return (xPos+xOff+0.5)*540;
   },
 
   _mask(ctx,bg){
@@ -207,7 +207,7 @@ const Render = {
 
   _trigger(ctx,n,line,tick,uc,noteType,judgeTime){
     // seek 时不生成视觉特效（所有 note 一次性积累判定应无粒子）
-    if(ST._seek){if(noteType)AudioMgr.sfxPlay(noteType);return}
+    if(ST._seek)return
     const x=Chart.lineX(line,n.floorPosition,tick,judgeTime),y=720+ST.judgeOff;
     const s=[];
     for(let i=0;i<4;i++){const a=Math.random()*Math.PI*2;s.push({x,y,vx:Math.cos(a)*650*(.8+Math.random()*.4),vy:Math.sin(a)*650*(.8+Math.random()*.4),r:16*(.85+Math.random()*.3)})}

@@ -7,6 +7,32 @@ const U = {
   rgbCss(r,g,b){return`rgb(${r|0},${g|0},${b|0})`},
   xPosToPx(xp){return(xp+0.5)*540},
   fmtSec(s){return s.toFixed(1)},
-  tickToSec(t){return t*60/ST.chart.bPM},
+  // tick → 秒（支持 BPM 变速）
+  tickToSec(tick){
+    const shifts=ST.chart.bpmShifts,bpm=ST.chart.bPM;
+    if(!shifts||shifts.length<2)return tick*60/bpm;
+    let sec=0;
+    for(let i=0;i<shifts.length-1;i++){
+      const st=shifts[i].time,et=shifts[i+1].time,mult=shifts[i].value;
+      if(tick>=et){sec+=(et-st)/(bpm*mult)*60;continue}
+      return sec+(tick-st)/(bpm*mult)*60;
+    }
+    const last=shifts[shifts.length-1];
+    return sec+(tick-last.time)/(bpm*last.value)*60;
+  },
+  // 秒 → tick（支持 BPM 变速）
+  secToTick(sec){
+    const shifts=ST.chart.bpmShifts,bpm=ST.chart.bPM;
+    if(!shifts||shifts.length<2)return sec*bpm/60;
+    let tick=0;
+    for(let i=0;i<shifts.length-1;i++){
+      const st=shifts[i].time,et=shifts[i+1].time,mult=shifts[i].value;
+      const segSec=(et-st)/(bpm*mult)*60;
+      if(sec>=segSec){sec-=segSec;tick=et;continue}
+      return tick+sec*bpm*mult/60;
+    }
+    const last=shifts[shifts.length-1];
+    return tick+sec*bpm*last.value/60;
+  },
   S(v){return v*ST.sScale},
 };

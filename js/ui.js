@@ -107,7 +107,7 @@ const UI = {
   tick(now){
     if(ST.playing&&ST.ready){
       const dt=(now-ST.lastMs)/1000*ST.rate;
-      ST.tick+=dt*ST.chart.bPM/60;
+      ST.tick+=dt*ST.chart.bPM*U.bpmMult(ST.tick)/60;
       if(ST.tick>=ST.maxTick)this._reset();
     }
     ST.lastMs=now;

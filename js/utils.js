@@ -35,4 +35,12 @@ const U = {
     return tick+sec*bpm*last.value/60;
   },
   S(v){return v*ST.sScale},
+  // 当前 tick 的 BPM 倍率（用于帧推进）
+  bpmMult(tick){
+    const shifts=ST.chart.bpmShifts;
+    if(!shifts||shifts.length<2)return 1;
+    let m=shifts[0].value;
+    for(let i=1;i<shifts.length&&tick>=shifts[i].time;i++)m=shifts[i].value;
+    return m;
+  },
 };

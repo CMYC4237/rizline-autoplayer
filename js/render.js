@@ -79,8 +79,9 @@ const Render = {
         ST.judged.add(n._gi);continue;
       }
       if(tick>=n.time){
-        const hs=ST.holdStates[n._gi]||{};
-        if(!hs.headHit){this._trigger(ctx,n,line,tick,uc,'hit',n.time);hs.headHit=true;ST.holdStates[n._gi]=hs}
+        if(!ST.holdStates[n._gi])ST.holdStates[n._gi]={};
+        const hs=ST.holdStates[n._gi];
+        if(!hs.headHit){this._trigger(ctx,n,line,tick,uc,'hit',n.time);hs.headHit=true}
         this._holdLocked(ctx,n,line,tick,nc);continue;
       }
       const x=Chart.lineX(line,n.floorPosition,tick,n.time),y=Chart.lineY(line,n.floorPosition,tick,n.time);
@@ -121,13 +122,10 @@ const Render = {
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,U.S(500)/2,0,Math.PI*2);ctx.fill();
   },
   _holdLocked(ctx,n,line,tick,nc){
-    // 头部 X 用 lineX 计算（随 ring 同动），Y 锁定在判定高度
-    const jy=720+ST.judgeOff;
-    // headX 优先用 ringX（与环一致），线移出判定高度时回退 lineX
-    let headX=this._ringX(line,tick);
-    if(isNaN(headX))headX=Chart.lineX(line,n.floorPosition,tick,n.time);
+    // 头 X 用 lineXAtTick（时间找段+插值），Y 锁 jy
+    const headY=720+ST.judgeOff;
+    const headX=this._lineXAtTick(line,tick);
     if(isNaN(headX))return;
-    const headY=jy;
     const tailFp=n.otherInformations[2],tailC=n.otherInformations[1];
     const tailY=Chart.elemY(tailFp,tailC,tick);
     const hh=headY-tailY;
@@ -171,9 +169,9 @@ const Render = {
     ctx.lineWidth=Math.max(.5,oR-iR);
     ctx.beginPath();ctx.arc(x,jy,mR,0,Math.PI*2);ctx.stroke();
   },
-  _ringX(line,tick){
+  // 给定线在当前 tick 的屏幕 X（时间找段+缓动+xOff 插值）
+  _lineXAtTick(line,tick){
     const pts=line.linePoints;if(pts.length<2)return NaN;
-    // 按时间找段（游标推进）
     let i=pts._ri||0;if(i>=pts.length-1)i=0;
     while(i<pts.length-2&&tick>=pts[i+1].time)i++;
     while(i>0&&tick<pts[i].time)i--;
@@ -181,10 +179,12 @@ const Render = {
     if(tick<pts[i].time||tick>pts[i+1].time)return NaN;
     const t=(tick-pts[i].time)/(pts[i+1].time-pts[i].time||1);
     const e=(E[pts[i].easeType]||E[0])(t);
-    // 两端的 xPosition + xOff（跨画布段也要正确插值）
     const xOff=U.lerp(Chart.interpKP(ST.chart.canvasMoves[pts[i].canvasIndex].xPositionKeyPoints,tick),
                      Chart.interpKP(ST.chart.canvasMoves[pts[i+1].canvasIndex].xPositionKeyPoints,tick),e);
     return (U.lerp(pts[i].xPosition,pts[i+1].xPosition,e)+xOff+0.5)*540;
+  },
+  _ringX(line,tick){
+    return this._lineXAtTick(line,tick);
   },
 
   _mask(ctx,bg){
